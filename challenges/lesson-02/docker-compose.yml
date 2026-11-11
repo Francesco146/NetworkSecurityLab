@@ -1,0 +1,27 @@
+services:
+  scanme:
+    build:
+      context: ../../03_scanning/scanme
+    container_name: scanme-challenge
+    volumes:
+      - ./secret-service.sh:/secret-service.sh:ro
+    command: sh -c "sh /secret-service.sh & /usr/sbin/sshd; nginx; vsftpd"
+    networks:
+      - challenge
+
+  scapy:
+    build:
+      context: ./scapy
+    container_name: scapy-challenge
+    cap_add:
+      - NET_RAW
+      - NET_ADMIN
+    volumes:
+      - ./captures:/caps
+    command: sleep infinity
+    networks:
+      - challenge
+
+networks:
+  challenge:
+    driver: bridge
