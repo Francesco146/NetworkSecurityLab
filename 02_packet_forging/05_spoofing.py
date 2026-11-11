@@ -13,4 +13,4 @@ icmp = ICMP()
 pkt = ip / icmp
 
 print(pkt)
-sr1(pkt)
+sr1(pkt, timeout=2)
