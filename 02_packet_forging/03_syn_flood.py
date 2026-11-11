@@ -1,4 +1,7 @@
 from scapy.all import *
+import sys
+if sys.platform == "darwin":
+    conf.use_pcap = True
 
 target = "127.0.0.1"
 tport = 1234
