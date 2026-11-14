@@ -1,0 +1,23 @@
+services:
+  udp-target:
+    build: ./target
+    container_name: udp-target
+    networks:
+      - udp-lab
+
+  udp-scanner:
+    build:
+      context: ../scapy
+    container_name: udp-scanner
+    cap_add:
+      - NET_RAW
+      - NET_ADMIN
+    volumes:
+      - .:/work
+    command: sleep infinity
+    networks:
+      - udp-lab
+
+networks:
+  udp-lab:
+    driver: bridge
