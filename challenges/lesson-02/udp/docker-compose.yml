@@ -1,6 +1,6 @@
 services:
   udp-target:
-    build: ./target
+    build: ./server
     container_name: udp-target
     networks:
       - udp-lab
