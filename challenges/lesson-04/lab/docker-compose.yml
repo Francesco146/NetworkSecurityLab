@@ -1,0 +1,34 @@
+services:
+  plc:
+    build:
+      context: ./plc-sim
+    container_name: plc
+    ports:
+      - "502:502"
+    networks:
+      - ics
+
+  hmi:
+    build:
+      context: ./hmi
+    container_name: hmi
+    ports:
+      - "8081:8081"
+    depends_on:
+      - plc
+    networks:
+      - ics
+
+  attacker:
+    build:
+      context: ./hmi
+    container_name: attacker
+    command: sleep infinity
+    depends_on:
+      - plc
+    networks:
+      - ics
+
+networks:
+  ics:
+    driver: bridge

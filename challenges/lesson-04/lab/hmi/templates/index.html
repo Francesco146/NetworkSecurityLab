@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <title>Impianto vasche — SCADA locale</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background:#101820; color:#e8eef2; margin:2rem; }
+    h1 { margin-top:0; }
+    .grid { display:flex; gap:2rem; flex-wrap:wrap; }
+    .tank { background:#1b2833; padding:1rem; border-radius:12px; width:250px; }
+    .bar { height:180px; width:70px; background:#263845; border-radius:8px; display:flex; align-items:flex-end; margin:0.8rem auto; }
+    .fill { width:100%; background:linear-gradient(#3fd0c9,#1f8f89); border-radius:8px; transition:height .4s; }
+    .alarm { color:#ff6b6b; font-weight:bold; }
+    .ok { color:#65d38a; }
+    button { margin:.2rem; padding:.35rem .6rem; border-radius:6px; border:0; cursor:pointer; }
+    .danger { background:#b23a48; color:white; }
+    .safe { background:#2f7d5b; color:white; }
+    .reset { background:#5b6b7a; color:white; }
+  </style>
+</head>
+<body>
+  <h1>Impianto vasche — HMI</h1>
+  <p>Interfaccia SCADA locale. Nessuna autenticazione: è parte del laboratorio.</p>
+  <div class="grid" id="tanks"></div>
+  <p id="message"></p>
+  <button class="reset" onclick="resetAlarms()">Reset allarmi</button>
+
+  <script>
+    async function post(url, data) {
+      const body = new URLSearchParams(data);
+      const r = await fetch(url, {method: "POST", body});
+      return r.json();
+    }
+
+    function tankCard(t, i) {
+      const alarm = t.alarm ? '<span class="alarm">ALLARME</span>' : '<span class="ok">OK</span>';
+      return `<div class="tank">
+        <h3>Vasca ${i+1}</h3>
+        <div class="bar"><div class="fill" style="height:${t.level}%"></div></div>
+        <div>Livello: <b>${t.level}%</b></div>
+        <div>Pompa: ${t.pump ? "ON" : "off"} — Valvola: ${t.valve ? "APERTA" : "chiusa"}</div>
+        <div>${alarm}</div>
+        <button class="${t.pump ? "danger" : "safe"}" onclick="pump(${i}, ${t.pump ? "false" : "true"})">${t.pump ? "Spegni pompa" : "Accendi pompa"}</button>
+        <button class="${t.valve ? "danger" : "safe"}" onclick="valve(${i}, ${t.valve ? "false" : "true"})">${t.valve ? "Chiudi valvola" : "Apri valvola"}</button>
+      </div>`;
+    }
+
+    async function refresh() {
+      const r = await fetch("/api/state");
+      const s = await r.json();
+      if (!s.ok) {
+        document.getElementById("tanks").innerHTML = `<p class="alarm">PLC non raggiungibile: ${s.error}</p>`;
+        return;
+      }
+      document.getElementById("tanks").innerHTML = s.tanks.map(tankCard).join("");
+    }
+
+    async function pump(i, value) {
+      const r = await post("/api/pump", {tank: i, value});
+      document.getElementById("message").textContent = r.ok ? "Pompa aggiornata" : "Errore";
+      refresh();
+    }
+
+    async function valve(i, value) {
+      const r = await post("/api/valve", {tank: i, value});
+      document.getElementById("message").textContent = r.ok ? "Valvola aggiornata" : "Errore";
+      refresh();
+    }
+
+    async function resetAlarms() {
+      const r = await post("/api/reset", {});
+      document.getElementById("message").textContent = r.ok ? "Allarmi resettati" : "Errore";
+      refresh();
+    }
+
+    refresh();
+    setInterval(refresh, 1000);
+  </script>
+</body>
+</html>
