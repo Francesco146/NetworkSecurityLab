@@ -1,11 +1,11 @@
-FROM debian:bullseye-20211201
+FROM debian:bookworm
 # Ref https://github.com/thiagoralves/OpenPLC_v3/blob/master/Dockerfile 
 ARG script
 ARG database
 
 # Install applications
 RUN apt-get update && apt-get -y install git sqlite3 python3 python3-pip && apt-get clean
-RUN pip3 install serial flask
+RUN pip3 install --break-system-packages serial flask
 
 # Install OpenPLC_v3
 RUN git clone https://github.com/thiagoralves/OpenPLC_v3.git
